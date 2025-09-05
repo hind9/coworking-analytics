@@ -1,3 +1,4 @@
+
 CREATE TABLE users
   (
      id         SERIAL NOT NULL CONSTRAINT users_pk PRIMARY KEY,

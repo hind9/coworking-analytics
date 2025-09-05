@@ -1,15 +1,29 @@
 import logging
-import os
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from flask import jsonify
 from sqlalchemy import and_, text
 from random import randint
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
-from config import app, db
+from analytics.config import SQLALCHEMY_DATABASE_URI
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+db = SQLAlchemy(app)
+app.logger.setLevel(logging.DEBUG)
+
+from flask import Flask, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from analytics.config import SQLALCHEMY_DATABASE_URI
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+db = SQLAlchemy(app)
 
 
+import os
 port_number = int(os.environ.get("APP_PORT", 5153))
 
 
@@ -50,7 +64,13 @@ def get_daily_visits():
 
 @app.route("/api/reports/daily_usage", methods=["GET"])
 def daily_visits():
-    return jsonify(get_daily_visits())
+    try:
+        return jsonify(get_daily_visits())
+    except Exception as e:
+        app.logger.error(f"Error in daily_visits: {e}", exc_info=True)
+        return {"error": str(e)}, 500
+
+
 
 
 @app.route("/api/reports/user_visits", methods=["GET"])
@@ -81,5 +101,34 @@ scheduler = BackgroundScheduler()
 job = scheduler.add_job(get_daily_visits, 'interval', seconds=30)
 scheduler.start()
 
+
+@app.route("/routes")
+def list_routes():
+    routes = [str(rule) for rule in app.url_map.iter_rules()]
+    return jsonify(routes)
+
+@app.route("/db_test")
+def db_test():
+    try:
+        result = db.session.execute(text("SELECT 1")).scalar()
+        return jsonify({"db_status": "ok", "result": result})
+    except Exception as e:
+        app.logger.error(f"DB connection failed: {e}", exc_info=True)
+        return jsonify({"db_status": "failed", "error": str(e)}), 500
+
+@app.route("/hello")
+def hello():
+    return "Hello, world!"
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port_number)
+
+    logging.basicConfig(level=logging.INFO)
+    print(f"Starting Flask on 0.0.0.0:{port_number} via Waitress")
+
+    print("Registered routes:")
+    for rule in app.url_map.iter_rules():
+        print(rule)
+
+    import waitress
+    waitress.serve(app, host="0.0.0.0", port=port_number)
