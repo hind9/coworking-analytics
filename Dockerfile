@@ -22,8 +22,7 @@ RUN apt-get update && \
 COPY analytics/requirements.txt .
 
 # Install Python dependencies (verify psycopg2 installation)
-RUN pip install --no-cache-dir -r requirements.txt && \
-    python -c "import psycopg2; print('✅ psycopg2 installed')"
+RUN pip install --no-cache-dir -r requirements.txt 
 
 # Copy app code
 COPY analytics/ ./analytics/
