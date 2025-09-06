@@ -10,7 +10,7 @@ ENV APP_PORT=5153
 RUN apt update -y && \
     apt install -y gcc libpq-dev && \
     rm -rf /var/lib/apt/lists/*
-
+RUN pip install psycopg2-binary
 # Set working directory
 WORKDIR /app
 
