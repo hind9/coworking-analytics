@@ -16,14 +16,14 @@ RUN apt-get update && \
         libpq-dev \
         python3-dev \
         build-essential \
-        libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
 COPY analytics/requirements.txt .
 
-# Install Python dependencies (includes psycopg2-binary)
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (verify psycopg2 installation)
+RUN pip install --no-cache-dir -r requirements.txt && \
+    python -c "import psycopg2; print('✅ psycopg2 installed')"
 
 # Copy app code
 COPY analytics/ ./analytics/
