@@ -35,12 +35,11 @@ def health_check():
 @app.route("/readiness_check")
 def readiness_check():
     try:
-        count = db.session.execute(text("SELECT 1")).scalar()
+        db.session.execute(text("SELECT 1")).scalar()
+        return "ok", 200
     except Exception as e:
-        app.logger.error(e)
+        app.logger.error(f"Readiness probe failed: {e}")
         return "failed", 500
-    else:
-        return "ok"
 
 
 def get_daily_visits():
