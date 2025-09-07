@@ -14,6 +14,28 @@ app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 db = SQLAlchemy(app)
 app.logger.setLevel(logging.DEBUG)
 
+run_sql_file('db/1_create_tables.sql')
+run_sql_file('db/2_seed_users.sql')
+run_sql_file('db/3_seed_tokens.sql')
+
+def run_sql_file(filepath):
+    """Run a raw SQL file using SQLAlchemy."""
+    if not os.path.exists(filepath):
+        app.logger.warning(f"SQL file not found: {filepath}")
+        return
+
+    with app.app_context():
+        with open(filepath, "r", encoding="utf-8") as f:
+            sql_statements = f.read()
+            try:
+                db.session.execute(text(sql_statements))
+                db.session.commit()
+                app.logger.info(f"Successfully executed {filepath}")
+            except Exception as e:
+                db.session.rollback()
+                app.logger.error(f"Failed to execute {filepath}: {e}", exc_info=True)
+
+
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from analytics.config import SQLALCHEMY_DATABASE_URI
