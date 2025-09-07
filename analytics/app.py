@@ -14,10 +14,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 db = SQLAlchemy(app)
 app.logger.setLevel(logging.DEBUG)
 
-run_sql_file('db/1_create_tables.sql')
-run_sql_file('db/2_seed_users.sql')
-run_sql_file('db/3_seed_tokens.sql')
-
 def run_sql_file(filepath):
     """Run a raw SQL file using SQLAlchemy."""
     if not os.path.exists(filepath):
@@ -34,6 +30,11 @@ def run_sql_file(filepath):
             except Exception as e:
                 db.session.rollback()
                 app.logger.error(f"Failed to execute {filepath}: {e}", exc_info=True)
+
+
+run_sql_file('db/1_create_tables.sql')
+run_sql_file('db/2_seed_users.sql')
+run_sql_file('db/3_seed_tokens.sql')
 
 
 from flask import Flask, jsonify
